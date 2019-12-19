@@ -12,6 +12,7 @@ import shutil
 
 # Local Imports
 from zat import bro_log_reader
+from zat.utils import interactive
 
 
 class BroMultiLogReader(object):
@@ -54,7 +55,8 @@ class BroMultiLogReader(object):
             try:
                 if tmp:
                     os.remove(tmp.name)
-                    print('Removed temporary file {:s}...'.format(tmp.name))
+                    if interactive.is_interactive():
+                        print('Removed temporary file {:s}...'.format(tmp.name))
             except IOError:
                 pass
 
