@@ -13,7 +13,7 @@ import time
 import datetime
 
 # Local Imports
-from zat.utils import file_tailer, file_utils
+from zat.utils import file_tailer, file_utils, interactive
 
 
 class BroLogReader(file_tailer.FileTailer):
@@ -74,13 +74,15 @@ class BroLogReader(file_tailer.FileTailer):
             try:
                 for row in self._readrows():
                     if reconnecting:
-                        print('Successfully monitoring {:s}...'.format(self._filepath))
+                        if interactive.is_interactive():
+                            print('Successfully monitoring {:s}...'.format(self._filepath))
                         reconnecting = False
                     yield row
             except IOError:
                 # If the tail option is set then we do a retry (might just be a log rotation)
                 if self._tail:
-                    print('Could not open file {:s} Retrying...'.format(self._filepath))
+                    if interactive.is_interactive():
+                        print('Could not open file {:s} Retrying...'.format(self._filepath))
                     reconnecting = True
                     time.sleep(5)
                     continue
@@ -89,7 +91,8 @@ class BroLogReader(file_tailer.FileTailer):
 
             # If the tail option is set then we do a retry (might just be a log rotation)
             if self._tail:
-                print('File closed {:s} Retrying...'.format(self._filepath))
+                if interactive.is_interactive():
+                    print('File closed {:s} Retrying...'.format(self._filepath))
                 reconnecting = True
                 time.sleep(5)
                 continue
@@ -161,7 +164,8 @@ class BroLogReader(file_tailer.FileTailer):
                 # We have to deal with the '-' based on the field_type
                 data_dict[key] = self.dash_mapper.get(field_type, '-') if value == '-' else converter(value)
             except ValueError as exc:
-                print('Conversion Issue for key:{:s} value:{:s}\n{:s}'.format(key, str(value), str(exc)))
+                if interactive.is_interactive():
+                    print('Conversion Issue for key:{:s} value:{:s}\n{:s}'.format(key, str(value), str(exc)))
                 data_dict[key] = value
                 if self._strict:
                     raise exc
